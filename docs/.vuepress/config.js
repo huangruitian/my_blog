@@ -17,37 +17,31 @@ module.exports = {
             { text: '首页', link: '/' },
              //格式二：添加下拉菜单，link指向的文件路径
             {
-                text: '分类',
-                ariaLabel: '分类',
+                text: '计算机基础',
+                ariaLabel: '计算机基础',
                 items: [
                     //点击标签会跳转至link的markdown文件生成的页面
-                    { text: 'html', link: '/pages/folder1/test1.md' },
-                    { text: 'css', link: '/pages/folder2/test4.md' },
-                    { text: 'js', link: '/pages/folder2/test4.md' },
-                    { text: 'react', link: '/pages/folder2/test4.md' },
-                    { text: 'webpack', link: '/pages/folder2/test4.md' },
-                    { text: '网络', link: '/pages/folder2/test4.md' },
-                    { text: '数据结构', link: '/pages/folder2/test4.md' },
-                    { text: '算法', link: '/pages/folder2/test4.md' },
-                    { text: '设计模式', link: '/pages/folder2/test4.md' },
-                    { text: '前端工程化', link: '/pages/folder2/test4.md' },
+                    { text: '网络', link: '/pages/pcBase/network.md' },
+                    { text: '数据结构', link: '/pages/pcBase/dataStructure.md' },
+                    { text: '算法', link: '/pages/pcBase/algorithm.md' },
+                    { text: '操作系统', link: '/pages/pcBase/system.md' },
                 ]
             },
             {
-                text: '分类',
-                ariaLabel: '分类',
+                text: '前端',
+                ariaLabel: '前端',
                 items: [
                     //点击标签会跳转至link的markdown文件生成的页面
-                    { text: 'html', link: '/pages/folder1/test1.md' },
-                    { text: 'css', link: '/pages/folder2/test4.md' },
-                    { text: 'js', link: '/pages/folder2/test4.md' },
-                    { text: 'react', link: '/pages/folder2/test4.md' },
-                    { text: 'webpack', link: '/pages/folder2/test4.md' },
-                    { text: '网络', link: '/pages/folder2/test4.md' },
-                    { text: '数据结构', link: '/pages/folder2/test4.md' },
-                    { text: '算法', link: '/pages/folder2/test4.md' },
-                    { text: '设计模式', link: '/pages/folder2/test4.md' },
-                    { text: '前端工程化', link: '/pages/folder2/test4.md' },
+                    { text: 'html', link: '/pages/frontEnd/html.md' },
+                    { text: 'css', link: '/pages/frontEnd/css.md' },
+                    { text: 'js', link: '/pages/frontEnd/js.md' },
+                    { text: 'es6', link: '/pages/frontEnd/es6.md' },
+                    { text: 'react', link: '/pages/frontEnd/react.md' },
+                    { text: 'redux', link: '/pages/frontEnd/redux.md' },
+                    { text: 'typescript', link: '/pages/frontEnd/typescript.md' },
+                    { text: 'webpack', link: '/pages/frontEnd/webpack.md' },
+                    { text: '前端工程化', link: '/pages/frontEnd/engineering.md' },
+                    { text: 'node', link: '/pages/frontEnd/node.md' },
                 ]
             },
             // { text: '功能演示', link: '/pages/folder1/test3.md' },
@@ -56,21 +50,49 @@ module.exports = {
         ],
         //侧边导航栏：会根据当前的文件路径是否匹配侧边栏数据，自动显示/隐藏
         sidebar: {
-            '/pages/folder1/':[
+            '/pages/pcBase/':[
                 {
-                    title: '测试菜单1',   // 必要的，一级菜单
-                    collapsable: false,  // 可选的, 默认值true是折叠,
-                    sidebarDepth: 1,     // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
+                    title: '数据结构',  // 必要的，一级菜单
+                    // collapsable: false,      // 可选的, 默认值true是折叠,
+                    sidebarDepth: 1,         // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
-                        ['test1.md', '子菜单1'], //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
-                        ['test3.md', '子菜单2']
+                        ['dataStructure.md', '数据结构']
                     ]
                 },
                 {
-                    title: '测试菜单2',
-                    collapsable: false, // 可选的, 默认值是 true,
+                    title: '算法',  // 必要的，一级菜单
+                    // collapsable: false,      // 可选的, 默认值true是折叠,
+                    sidebarDepth: 1,         // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
-                        ['test2.md', '子菜单1']
+                        ['algorithm.md', '算法'], //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
+                    ]
+                },
+                {
+                    title: '网络',
+                    // collapsable: false, // 可选的, 默认值是 true,
+                    children: [
+                        ['network.md', '网络分层'],
+                        ['http.md', 'http'],
+                        ['https.md', 'https'],
+                        ['tcp.md', 'tcp'],
+                    ]
+                }
+            ],
+            '/pages/frontEnd/':[
+                {
+                    title: 'html/css',  // 必要的，一级菜单
+                    // collapsable: false,      // 可选的, 默认值true是折叠,
+                    sidebarDepth: 1,         // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
+                    children: [
+                        ['html.md', '算法'], //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
+                        ['css.md', '数据结构']
+                    ]
+                },
+                {
+                    title: '网络',
+                    // collapsable: false, // 可选的, 默认值是 true,
+                    children: [
+                        ['network.md', 'http']
                     ]
                 }
             ],
