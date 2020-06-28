@@ -70,6 +70,7 @@ module.exports = {
                 {
                     title: '网络',
                     // collapsable: false, // 可选的, 默认值是 true,
+                    sidebarDepth: 1,         // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
                         ['network.md', '网络分层'],
                         ['http.md', 'http'],
@@ -84,15 +85,15 @@ module.exports = {
                     // collapsable: false,      // 可选的, 默认值true是折叠,
                     sidebarDepth: 1,         // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
-                        ['html.md', '算法'], //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
-                        ['css.md', '数据结构']
+                        ['html.md', 'html'], //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
+                        ['css.md', '层叠样式表']
                     ]
                 },
                 {
-                    title: '网络',
+                    title: 'js',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                        ['network.md', 'http']
+                        ['js.md', 'http']
                     ]
                 }
             ],
