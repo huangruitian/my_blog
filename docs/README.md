@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: /egg.png
+heroImage: /hack.png
 heroText: 懵新加加的前端记录
 tagline: 一点一滴都是进步
 actionText: 马上进入
