@@ -75,6 +75,7 @@ module.exports = {
                         ['network.md', '网络分层'],
                         ['http.md', 'http'],
                         ['https.md', 'https'],
+                        ['websocket.md', 'websocket'],
                         ['tcp.md', 'tcp'],
                     ]
                 }
