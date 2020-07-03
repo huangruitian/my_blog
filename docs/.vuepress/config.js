@@ -96,6 +96,13 @@ module.exports = {
                     children: [
                         ['js.md', 'http']
                     ]
+                },
+                {
+                    title: '浏览器',
+                    // collapsable: false, // 可选的, 默认值是 true,
+                    children: [
+                        ['browser.md', '浏览器']
+                    ]
                 }
             ],
         }
