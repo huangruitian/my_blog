@@ -440,6 +440,131 @@ let 是 ES6 开始引入的新的变量声明模式，比起 var 的诸多弊病
 
 我简单统计了下，以下语句会产生 let 使用的作用域：for；if；switch；try/catch/finally。
 
+我们来看段代码理解ES6的块级作用域：
+```js
+function foo(){
+    var a = 1
+    let b = 2
+    {
+      let b = 3
+      var c = 4
+      let d = 5
+      console.log(a)
+      console.log(b)
+    }
+    console.log(b) 
+    console.log(c)
+    console.log(d)
+}   
+foo()
+```
+1. 编译并创建执行上下文，函数运行之前一刻。简称预编译：
+![alt](./images/context.png)
+
+2. 继续执行代码，当执行到代码块里面时，变量环境中 a 的值已经被设置成了 1，词法环境中 b 的值已经被设置成了 2，这时候函数的执行上下文就如下图所示：
+![alt](./images/yunxing.png)
+
+从图中可以看出，当进入函数的作用域块时，作用域块中通过 let 声明的变量，会被存放在词法环境的一个单独的区域中，这个区域中的变量并不影响作用域块外面的变量，比如在作用域外面声明了变量 b，在该作用域块内部也声明了变量 b，当执行到作用域内部时，它们都是独立的存在。
+
+其实，在词法环境内部，维护了一个小型栈结构，栈底是函数最外层的变量，进入一个作用域块后，就会把该作用域块内部的变量压到栈顶；当作用域执行完成之后，该作用域的信息就会从栈顶弹出，这就是词法环境的结构。需要注意下，我这里所讲的变量是指通过 let 或者 const 声明的变量。
+
+再接下来，当执行到作用域块中的console.log(a)这行代码时，就需要在词法环境和变量环境中查找变量 a 的值了，具体查找方式是：沿着词法环境的栈顶向下查询，如果在词法环境中的某个块中查找到了，就直接返回给 JavaScript 引擎，如果没有查找到，那么继续在变量环境中查找。
+
+这样一个变量查找过程就完成了，你可以参考下图：
+![alt](./images/find.png)
+
+3. 当作用域块执行结束之后，其内部定义的变量就会从词法环境的栈顶弹出，最终执行上下文如下图所示：
+![alt](./images/over.png)
+
+注意：
+```js
+// 【最终打印结果】：VM6277:3 Uncaught ReferenceError: Cannot access 'myname' before initialization
+// 【分析原因】：在块作用域内，let声明的变量被提升，但变量只是创建被提升，初始化并没有被提升，在初始化之前使用变量，就会形成一个暂时性死区。
+// 【拓展】
+// var的创建和初始化被提升，赋值不会被提升。
+// let的创建被提升，初始化和赋值不会被提升。
+// function的创建、初始化和赋值均会被提升。
+let myname= '极客时间'
+{
+  console.log(myname) 
+  let myname= '极客邦'
+}
+```
+#### 作用域链
+```js
+function bar() {
+    var myName = "极客世界"
+    let test1 = 100
+    if (1) {
+        let myName = "Chrome浏览器"
+        console.log(test)
+    }
+}
+function foo() {
+    var myName = "极客邦"
+    let test = 2
+    {
+        let test = 3
+        bar()
+    }
+}
+var myName = "极客时间"
+let myAge = 10
+let test = 1
+foo()
+```
+![alt](./images/liantiao.png)
+
+### 再谈闭包
+```js
+function foo() {
+    var myName = "极客时间"
+    let test1 = 1
+    const test2 = 2
+    var innerBar = {
+        getName:function(){
+            console.log(test1)
+            return myName
+        },
+        setName:function(newName){
+            myName = newName
+        }
+    }
+    return innerBar
+}
+var bar = foo()
+bar.setName("极客邦")
+bar.getName()
+console.log(bar.getName())
+```
+首先我们看看当执行到 foo 函数内部的return innerBar这行代码时调用栈的情况，看下图：
+![alt](./images/bibao1.png)
+
+从上面的代码可以看出，innerBar 是一个对象，包含了 getName 和 setName 的两个方法（通常我们把对象内部的函数称为方法）。你可以看到，这两个方法都是在 foo 函数内部定义的，并且这两个方法内部都使用了 myName 和 test1 两个变量。
+
+根据词法作用域的规则，内部函数 getName 和 setName 总是可以访问它们的外部函数 foo 中的变量，所以当 innerBar 对象返回给全局变量 bar 时，虽然 foo 函数已经执行结束，但是 getName 和 setName 函数依然可以使用 foo 函数中的变量 myName 和 test1。所以当 foo 函数执行完成之后，其整个调用栈的状态如下图所示：
+
+![alt](./images/bibao2.png)
+
+从上图可以看出，foo 函数执行完成之后，其执行上下文从栈顶弹出了，但是由于返回的 setName 和 getName 方法中使用了 foo 函数内部的变量 myName 和 test1，所以这两个变量依然保存在内存中。这像极了 setName 和 getName 方法背的一个专属背包，无论在哪里调用了 setName 和 getName 方法，它们都会背着这个 foo 函数的专属背包。
+
+之所以是专属背包，是因为除了 setName 和 getName 函数之外，其他任何地方都是无法访问该背包的，我们就可以把这个背包称为 foo 函数的闭包。
+
+好了，现在我们终于可以给闭包一个正式的定义了。**在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过调用一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合称为闭包。比如外部函数是 foo，那么这些变量的集合就称为 foo 函数的闭包。**
+
+那这些闭包是如何使用的呢？
+
+当执行到 bar.setName 方法中的myName = "极客邦"这句代码时，JavaScript 引擎会沿着“当前执行上下文–>foo 函数闭包–> 全局执行上下文”的顺序来查找 myName 变量，你可以参考下面的调用栈状态图：
+
+![alt](./images/bibao3.png)
+
+### 闭包是怎么回收的
+通常，如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭；但如果这个闭包以后不再使用的话，就会造成内存泄漏。
+
+如果引用闭包的函数是个局部变量，等函数销毁后，在下次 JavaScript 引擎执行垃圾回收时，判断闭包这块内容如果已经不再被使用了，那么 JavaScript 引擎的垃圾回收器就会回收这块内存。
+
+所以在使用闭包的时候，你要尽量注意一个原则：**如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存又比较大的话，那就尽量让它成为一个局部变量。**
+
 ### Realm
 在最新的标准（9.0）中，JavaScript 引入了一个新概念 Realm，它的中文意思是“国度”“领域”“范围”。
 
