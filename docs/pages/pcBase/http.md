@@ -296,6 +296,34 @@ PUT 的作用与 POST 类似，也可以向服务器提交数据，但与 POST �
 
 在前端最常用的 cors 跨域中，浏览器都是用 OPTIONS 方法发预检请求的
 
+### 简单请求与复杂请求
+1. 简单请求
+- 请求方法为GET、HEAD、POST时发的请求
+- 人为设置了规范集合之内的首部字段，如Accept/Accept-Language/Content-Language/Content-Type/DPR/Downlink/Save-Data/Viewport-Width/Width
+- Content-Type 的值仅限于下列三者之一,即application/x-www-form-urlencoded、multipart/form-data、text/plain
+- 请求中的任意 XMLHttpRequestUpload 对象均没有注册任何事件监听器；
+- 请求中没有使用 ReadableStream 对象。
+
+2. 复杂请求
+- 使用了下面任一 HTTP 方法，PUT/DELETE/CONNECT/OPTIONS/TRACE/PATCH
+- 人为设置了以下集合之外首部字段，即简单请求外的字段
+- Content-Type 的值不属于下列之一，即application/x-www-form-urlencoded、multipart/form-data、text/plain
+
+当触发预检时，跨域请求便会发送 2 次请求，既增加了请求数，也延迟了请求真正发起的时间，严重影响性能。
+
+所以，我们可以优化 Options 请求，主要有 2 种方法：
+
+- 转为简单请求，如用 JSONP 做跨域请求
+
+- 对 options 请求进行缓存，服务器端设置 Access-Control-Max-Age 字段，那么当第一次请求该 URL 时会发出 OPTIONS 请求，浏览器会根据返回的 Access-Control-Max-Age 字段缓存该请求的 OPTIONS 预检请求的响应结果（具体缓存时间还取决于浏览器的支持的默认最大值，取两者最小值，一般为 10 分钟）。在缓存有效期内，该资源的请求（URL 和 header 字段都相同的情况下）不会再触发预检。（chrome 打开控制台可以看到，当服务器响应 Access-Control-Max-Age 时只有第一次请求会有预检，后面不会了。注意要开启缓存，去掉 disable cache 勾选。）
+
+### GET 和 POST的区别
+1. 从安全角度，POST相对安全点，而GET直接暴露在URL上
+2. 从幂等性角度，POST是非幂等的，GET幂等
+3. 从编码角度，GET只支持ASCII码，POST没有限制
+4. 从缓存角度，GET 请求会被浏览器主动缓存下来，留下历史记录，而 POST 默认不会。
+5. 从TCP的角度，GET 请求会把请求报文一次性发出去，而 POST 会分为两个 TCP 数据包，首先发 header 部分，如果服务器响应 100(continue)， 然后发 body 部分。(火狐浏览器除外，它的 POST 请求只发一个 TCP 包)
+
 ### 扩展方法
 虽然 HTTP/1.1 里规定了八种请求方法，但它并没有限制我们只能用这八种方法，这也体现了 HTTP 协议良好的扩展性，我们可以任意添加请求动作，只要请求方和响应方都能理解就行。
 
@@ -698,6 +726,38 @@ Ctrl+F5 的“强制刷新”又是什么样的呢？
 - 但你还是想要最新的，就又打电话：“有不是沙瓤的西瓜吗？”，超市告诉你都是沙瓤的（Match），于是你还是只能吃冰箱里的沙瓤西瓜。这就是“If-None-Match”和“弱 ETag”。
 
 - 第三次打电话，你说“有不是 8 斤的沙瓤西瓜吗？”，这回超市给了你满意的答复：“有个 10 斤的沙瓤西瓜”。于是，你就扔掉了冰箱里的存货，让超市重新送了一个新的大西瓜。这就是“If-None-Match”和“强 ETag”。
+
+### 缓存控制机制（重点）
+```js
+// 当前页面不缓存, 每次访问都去服务器拉取. 只有部分浏览器支持. 
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+```
+### 强缓存 (200 from cache) 
+判断的字段: Expires 或 Cache-Control
+- Expires ``[http 1.0 的标准]``,  存储的是过期的具体时间
+- Cache-Control ``[http 1.1 的标准]``  max-age 值是过期的秒。 max-age 最大值不能超过1年，秒为单位， 优先级高, 以它的结果为准。
+- 由于具体时间没有转换到正确的时区有可能造成错误，所以倾向于使用 Cache-Control: max-age
+
+### 协商缓存  (304 or 200)，last-modified 或 Etag
+- 响应头/请求头（last-modified/If-Modified-Since）
+
+- 浏览器第一次请求数据之后,服务端在 Response Headers 会带上 Last-modified (服务端资源最后修改时间)。
+
+- 再次请求时, 请求头会带上 If-Modified-Since 去跟服务器资源的最后修改时间对比。 如果修改，返回 200，否则返回 304。
+
+- 其次是，响应头/请求头（Etag/If-None-Match），也是一样得。
+
+### last-modified 和 Etag 区别。
+- 有些服务无法精确的得到资源最后修改时间。
+- last-modified 只能精确到秒。
+- 一些资源的最后修改时间改变了，但是内容没改变，使用 Last-modified 看不出内容没有改变。
+- Etag 的精度比 Last-modified 高，属于强验证，优先级高。
+
+### last-modified 和 Etag 优先级
+一般先判断 Etag, 再判断 last-modified，但是结果会由服务器决策。
+
+### 一张图总结，过程省略代理缓存
+![alt](./images/cache-control.png)
 
 ## HTTP的代理服务
 所谓的“代理服务”就是指服务本身不生产内容，而是处于中间位置转发上下游的请求和响应，具有双重身份：面向下游的用户时，表现为服务器，代表源服务器响应客户端的请求；而面向上游的源服务器时，又表现为客户端，代表客户端发送请求。

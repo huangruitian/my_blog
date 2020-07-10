@@ -87,6 +87,10 @@ module.exports = {
                         link: '/pages/frontEnd/engineering.md'
                     },
                     {
+                        text: '浏览器',
+                        link: '/pages/frontEnd/browser.md'
+                    },
+                    {                
                         text: 'node',
                         link: '/pages/frontEnd/node.md'
                     },
