@@ -1,6 +1,7 @@
 module.exports = {
     title: '懵新加加首页', // 显示在左上角的网页名称以及首页在浏览器标签显示的title名称
     description: '懵新加加的前端记录', // meta 中的描述文字，用于SEO
+    base: '/my_blog/', //设置站点根路径
     // 注入到当前页面的 HTML <head> 中的标签
     head: [
         ['link', {
