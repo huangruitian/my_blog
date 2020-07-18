@@ -134,10 +134,10 @@ Object.defineProperty(o, "b", {
     configurable: true
 });
 //a 和 b都是数据属性，但特征值变化了
-// {value: 1, writable: true, enumerable: true, configurable: true}
 Object.getOwnPropertyDescriptor(o,"a"); 
-// {value: 2, writable: false, enumerable: false, configurable: true}
+// {value: 1, writable: true, enumerable: true, configurable: true}
 Object.getOwnPropertyDescriptor(o,"b"); 
+// {value: 2, writable: false, enumerable: false, configurable: true}
 o.b = 3; //试图写值，但 writable === false
 console.log(o.b); // 2
 ```
@@ -734,4 +734,562 @@ foo.bind({}, 1, 2, 3)();
 其实我们会发现，为了兼容老代码，新增的特性除了class都不支持new 生成对象。
 
 ![alt](./images/new.png)
+
+## 预编译
+### js执行三部曲
+1. 语法分析
+2. 预编译
+3. 解释执行
+
+### 预编译阶段
+- 函数声明整体提升，函数不管写到哪里，都会被提到逻辑的最前面。
+- 变量声明提升，把 var a 提升到最前面
+- 未经声明的变量，归window所有；如a=1，相当于window.a = 1；
+- 预编译四部曲（全局script脚本也是一个函数，但是少了第三步）；
+1. 创建 AO 对象 Activation Object(执行期上下文，作用是理解的作用域，函数产生的执行空间库)
+2. 找形参和变量声明，将变量和形参名作为 AO 属性名，值为 undefined
+```js
+// 相当于 
+AO = {
+ a : undefined,
+ b : undefined
+}
+```
+3. 将实参值和形参统一（把实参值传到形参里）
+4. 在函数体里面找函数声明，值赋予函数体（先看自己的 AO，再看全局的 GO）
+
+## 深入之从原型到原型链
+1. 每个函数都有一个 prototype 属性，就是我们经常在各种例子中看到的那个 prototype ，比如：
+```js
+function Person() {
+
+}
+// 虽然写在注释里，但是你要注意：
+// prototype是函数才会有的属性
+Person.prototype.name = 'Kevin';
+var person1 = new Person();
+var person2 = new Person();
+console.log(person1.name) // Kevin
+console.log(person2.name) // Kevin
+```
+2. __proto__，这是每一个JavaScript对象(除了 null )都具有的一个属性，叫__proto__，这个属性会指向该对象的原型。
+```js
+function Person() {
+
+}
+var person = new Person();
+console.log(person.__proto__ === Person.prototype); // true
+```
+- 于是，我们就有了下面的关系图
+![alt](./images/prototype2.png)
+
+既然实例对象和构造函数都可以指向原型，那么原型是否有属性指向构造函数或者实例呢？
+3. constructor
+指向实例倒是没有，因为一个构造函数可以生成多个实例，但是原型指向构造函数倒是有的，这就要讲到第三个属性：constructor，每个原型都有一个 constructor 属性指向关联的构造函数。
+
+为了验证这一点，我们可以尝试：
+```js
+function Person() {
+
+}
+console.log(Person === Person.prototype.constructor); // true
+```
+
+所以，再次更新关系图：
+![alt](./images/prototype3.png)
+
+综上所述：
+```js
+function Person() {
+
+}
+var person = new Person();
+console.log(person.__proto__ == Person.prototype) // true
+console.log(Person.prototype.constructor == Person) // true
+// 顺便学习一个ES5的方法,可以获得对象的原型
+console.log(Object.getPrototypeOf(person) === Person.prototype) // true
+```
+
+4. 实例与原型
+- 当读取实例的属性时，如果找不到，就会查找与对象关联的原型中的属性，如果还查不到，就去找原型的原型，一直找到最顶层为止
+
+举个例子：
+```js
+function Person() {
+
+}
+
+Person.prototype.name = 'Kevin';
+
+var person = new Person();
+
+person.name = 'Daisy';
+console.log(person.name) // Daisy
+
+delete person.name;
+console.log(person.name) // Kevin
+```
+
+5. 原型的原型
+在前面，我们已经讲了原型也是一个对象，既然是对象，我们就可以用最原始的方式创建它，那就是：
+```js
+var obj = new Object();
+obj.name = 'Kevin'
+console.log(obj.name) // Kevin
+```
+其实原型对象就是通过 Object 构造函数生成的，结合之前所讲，实例的 __proto__ 指向构造函数的 prototype ，所以我们再更新下关系图：
+
+![alt](./images/prototype4.png)
+
+6. 原型链
+那 Object.prototype 的原型呢？
+
+null，我们可以打印：
+```js
+console.log(Object.prototype.__proto__ === null) // true
+```
+
+然而 null 究竟代表了什么呢？null 表示“没有对象”，即该处不应该有值。
+
+所以 Object.prototype.__proto__ 的值为 null 跟 Object.prototype 没有原型，其实表达了一个意思。
+
+所以查找属性的时候查到 Object.prototype 就可以停止查找了。
+
+最后一张关系图也可以更新为：
+![alt](./images/prototype5.png)
+
+7. 注意点
+- constructor
+```js
+function Person() {
+
+}
+var person = new Person();
+// person.constructor 其实会找原型，刚好原型上有
+// person.constructor === Person.prototype.constructor
+console.log(person.constructor === Person); // true
+```
+- __proto__
+其次是 __proto__ ，绝大部分浏览器都支持这个非标准的方法访问原型，然而它并不存在于 Person.prototype 中，实际上，它是来自于 Object.prototype ，与其说是一个属性，不如说是一个 getter/setter，当使用 obj.__proto__ 时，可以理解成返回了 Object.getPrototypeOf(obj)。
+
+- 鸡生蛋，蛋生鸡问题
+Function作为一个内置对象，是运行前就已经存在的东西，所以根本就不会根据自己生成自己，所以就没有什么鸡生蛋蛋生鸡，就是鸡生蛋。
+
+至于为什么Function.__proto__ === Function.prototype，我认为有两种可能：一是为了保持与其他函数一致，二是就是表明一种关系而已。
+
+简单的说，我认为：就是先有的Function，然后实现上把原型指向了Function.prototype，但是我们不能倒过来推测因为Function.__proto__ === Function.prototype，所以Function调用了自己生成了自己。
+
+## 作用域
+作用域是指程序源代码中定义变量的区域。
+
+作用域规定了如何查找变量，也就是确定当前执行代码对变量的访问权限。
+
+JavaScript 采用词法作用域(lexical scoping)，也就是静态作用域。
+
+### 静态作用域
+因为 JavaScript 采用的是词法作用域，函数的作用域在函数定义的时候就决定了。
+
+而与词法作用域相对的是动态作用域，函数的作用域是在函数调用的时候才决定的。
+
+让我们认真看个例子就能明白之间的区别：
+```js
+var value = 1;
+
+function foo() {
+    console.log(value);
+}
+
+function bar() {
+    var value = 2;
+    foo();
+}
+
+bar();
+
+// 结果是 ???
+```
+假设JavaScript采用静态作用域，让我们分析下执行过程：
+
+执行 foo 函数，先从 foo 函数内部查找是否有局部变量 value，如果没有，就根据书写的位置，查找上面一层的代码，也就是 value 等于 1，所以结果会打印 1。
+
+假设JavaScript采用动态作用域，让我们分析下执行过程：
+
+执行 foo 函数，依然是从 foo 函数内部查找是否有局部变量 value。如果没有，就从调用函数的作用域，也就是 bar 函数内部查找 value 变量，所以结果会打印 2。
+
+前面我们已经说了，JavaScript采用的是静态作用域，所以这个例子的结果是 1。
+
+### 动态作用域
+
+也许你会好奇什么语言是动态作用域？
+
+bash 就是动态作用域，不信的话，把下面的脚本存成例如 scope.bash，然后进入相应的目录，用命令行执行 bash ./scope.bash，看看打印的值是多少。
+
+```js
+value=1
+function foo () {
+    echo $value;
+}
+function bar () {
+    local value=2;
+    foo;
+}
+bar
+```
+
+思考题，这两段代码的执行效果；执行上下文在调用栈的情况不一样；
+```js
+var scope = "global scope";
+function checkscope(){
+    var scope = "local scope";
+    function f(){
+        return scope;
+    }
+    return f();
+}
+checkscope();
+
+var scope = "global scope";
+function checkscope(){
+    var scope = "local scope";
+    function f(){
+        return scope;
+    }
+    return f;
+}
+checkscope()();
+```
+
+## call 和 apply 的模拟实现
+### call
+- call() 方法在使用一个指定的 this 值和若干个指定的参数值的前提下调用某个函数或方法。
+```js
+// call 改变了 this 的指向，指向到 foo
+// bar 函数执行了
+var foo = {
+    value: 1
+};
+
+function bar() {
+    console.log(this.value);
+}
+
+bar.call(foo); // 1
+```
+所以我们模拟的步骤可以分为：
+
+1. 将函数设为对象的属性
+2. 执行该函数
+3. 删除该函数
+
+```js
+Function.prototype.call2 = function (context) {
+    // 1. 如果传入的是null，则指向window
+    var context = context || window;
+    context.fn = this;
+
+    var args = [];
+    for(var i = 1, len = arguments.length; i < len; i++) {
+        args.push('arguments[' + i + ']');
+    }
+    // 函数执行是有返回值的
+    var result = eval('context.fn(' + args +')');
+
+    delete context.fn
+    return result;
+}
+```
+
+### apply
+- 实现原理和call基本一致
+```js
+Function.prototype.apply = function (context, arr) {
+    var context = Object(context) || window;
+    context.fn = this;
+
+    var result;
+    if (!arr) {
+        result = context.fn();
+    }
+    else {
+        var args = [];
+        for (var i = 0, len = arr.length; i < len; i++) {
+            args.push('arr[' + i + ']');
+        }
+        result = eval('context.fn(' + args + ')')
+    }
+
+    delete context.fn
+    return result;
+}
+```
+
+## bind
+- bind() 方法会创建一个新函数。当这个新函数被调用时，bind() 的第一个参数将作为它运行时的 this，之后的一序列参数将会在传递的实参前传入作为它的参数。
+1. 返回一个函数
+2. 可以传入参数
+3. 返回的函数可以使用new
+```js
+Function.prototype.bind2 = function (context) {
+    // 只允许函数调用的方式使用
+    if (typeof this !== "function") {
+      throw new Error("Function.prototype.bind - what is trying to be bound is not callable");
+    }
+    // 当前的函数this
+    var self = this;
+    // bind 时候传入的参数
+    var args = Array.prototype.slice.call(arguments, 1);
+
+    var fNOP = function () {};
+    // bind 返回一个函数
+    var fBound = function () {
+        // 这个函数可以继续传值，但是要结合 bind 时候传入的参数
+        var bindArgs = Array.prototype.slice.call(arguments);
+        // this执行问题，
+        return self.apply(this instanceof fNOP ? this : context, args.concat(bindArgs));
+    }
+
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+    return fBound;
+}
+```
+
+## new 
+1. 会产生一个 obj = new Object() 对象
+2. obj.xxx = xxx
+3. 如果直接返回一个对象，就取这个对象；否则返回obj
+```js
+// 第二版的代码
+function objectFactory() {
+    var obj = new Object(),
+    Constructor = [].shift.call(arguments);
+    // 注意原型安排上
+    obj.__proto__ = Constructor.prototype;
+    var ret = Constructor.apply(obj, arguments);
+    // 如果new Constructor 返回的是个对象，直接用这个对象
+    return typeof ret === 'object' ? ret : obj;
+};
+```
+
+## 创建对象的方式和优缺点
+1. 工厂模式
+- 缺点：对象无法识别，因为所有的实例都指向一个原型``Object.prototype``
+```js
+function createPerson(name) {
+    var o = new Object();
+    o.name = name;
+    o.getName = function () {
+        console.log(this.name);
+    };
+
+    return o;
+}
+
+var person1 = createPerson('kevin');
+```
+2. 构造函数模式
+- 优点：实例可以识别为一个特定的类型
+
+- 缺点：每次创建实例时，每个方法都要被创建一次
+```js
+function Person(name) {
+    this.name = name;
+    // 每个方法都要被创建一次
+    this.getName = function () {
+        console.log(this.name);
+    };
+}
+
+var person1 = new Person('kevin');
+```
+3. 原型模式
+- 优点：方法不会重新创建
+
+- 缺点：1. 所有的属性和方法都共享 2. 不能初始化参数
+```js
+function Person(name) {
+
+}
+
+Person.prototype.name = 'keivn';
+Person.prototype.getName = function () {
+    console.log(this.name);
+};
+
+var person1 = new Person();
+```
+
+## 继承
+1. 原型链继承
+```js
+function Parent () {
+    this.name = 'kevin';
+}
+Parent.prototype.getName = function () {
+    console.log(this.name);
+}
+
+function Child () {
+
+}
+
+Child.prototype = new Parent();
+
+var child1 = new Child();
+console.log(child1.getName()) // kevin
+```
+
+引用类型的属性被所有实例共享，举个例子：
+```js
+function Parent () {
+    this.names = ['kevin', 'daisy'];
+}
+
+function Child () {
+
+}
+
+Child.prototype = new Parent();
+
+var child1 = new Child();
+
+child1.names.push('yayu');
+
+console.log(child1.names); // ["kevin", "daisy", "yayu"]
+
+var child2 = new Child();
+
+console.log(child2.names); // ["kevin", "daisy", "yayu"]
+```
+
+2. 借用构造函数(经典继承)
+```js
+function Parent () {
+    this.names = ['kevin', 'daisy'];
+}
+
+function Child () {
+    Parent.call(this);
+}
+
+var child1 = new Child();
+
+child1.names.push('yayu');
+
+console.log(child1.names); // ["kevin", "daisy", "yayu"]
+
+var child2 = new Child();
+
+console.log(child2.names); // ["kevin", "daisy"]
+```
+
+优点：
+- 避免了引用类型的属性被所有实例共享
+- 可以在 Child 中向 Parent 传参
+
+缺点：
+- 方法都在构造函数中定义，每次创建实例都会创建一遍方法。
+
+3. 组合继承（原型链继承和经典继承双剑合璧）
+```js
+function Parent (name) {
+    this.name = name;
+    this.colors = ['red', 'blue', 'green'];
+}
+
+Parent.prototype.getName = function () {
+    console.log(this.name)
+}
+
+function Child (name, age) {
+
+    Parent.call(this, name);
+    
+    this.age = age;
+
+}
+
+Child.prototype = new Parent();
+Child.prototype.constructor = Child;
+
+var child1 = new Child('kevin', '18');
+
+child1.colors.push('black');
+
+console.log(child1.name); // kevin
+console.log(child1.age); // 18
+console.log(child1.colors); // ["red", "blue", "green", "black"]
+
+var child2 = new Child('daisy', '20');
+
+console.log(child2.name); // daisy
+console.log(child2.age); // 20
+console.log(child2.colors); // ["red", "blue", "green"]
+```
+
+4. 组合继承的优化(推荐使用)
+- 就是 ES5 Object.create 的模拟实现，将传入的对象作为创建的对象的原型。
+```js
+function createObj(o) {
+    function F(){}
+    F.prototype = o;
+    return new F();
+}
+```
+这是最推荐的一种方式，接近完美的继承，它的名字也叫做寄生组合继承。
+```js
+  function Parent5 () {
+    this.name = 'parent5';
+    this.play = [1, 2, 3];
+  }
+  function Child5() {
+    Parent5.call(this);
+    this.type = 'child5';
+  }
+  Child5.prototype = Object.create(Parent5.prototype);
+  Child5.prototype.constructor = Child5;
+```
+
+### 继承存在的问题
+- 因为继承，所有在某个对象上，被集成了很多无用的属性；
+- 组合模式就很好的避免掉了这样的问题；golang完全采用的是面向组合的设计方式。
+
+## JS 专题系列
+1. 防抖
+- 防抖的原理就是：你尽管触发事件，但是我一定在事件触发 n 秒后才执行，如果你在一个事件触发的 n 秒内又触发了这个事件，那我就以新的事件的时间为准，n 秒后才执行，总之，就是要等你触发完事件 n 秒内不再触发事件，我才执行；
+```js
+// 第三版
+function debounce(func, wait) {
+    var timeout;
+    return function () {
+        var context = this;
+        var args = arguments;
+
+        clearTimeout(timeout)
+        timeout = setTimeout(function(){
+            func.apply(context, args)
+        }, wait);
+    }
+}
+```
+
+2. 节流
+```js
+const throttle = function(fn, interval) {
+  let last = 0;
+  return function (...args) {
+    let context = this;
+    let now = +new Date();
+    // 还没到时间
+    if(now - last < interval) return;
+    last = now;
+    fn.apply(this, args)
+  }
+}
+```
+
+
+
+
+
 
