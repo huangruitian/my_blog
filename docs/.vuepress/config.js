@@ -15,6 +15,7 @@ module.exports = {
     serviceWorker: true,
     themeConfig: {
         // logo: '/egg.png',
+        displayAllHeaders: true,   // 默认值：false
         lastUpdated: 'lastUpdate', // string | boolean
         nav: [
             //格式一：直接跳转，'/'为不添加路由，跳转至首页
@@ -109,7 +110,7 @@ module.exports = {
             '/pages/frontEnd/': [{
                     title: 'html', // 必要的，一级菜单
                     // collapsable: false,      // 可选的, 默认值true是折叠,
-                    sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
+                    // sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
                       'html.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
                     ]
