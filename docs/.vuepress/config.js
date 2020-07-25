@@ -15,7 +15,7 @@ module.exports = {
     serviceWorker: true,
     themeConfig: {
         // logo: '/egg.png',
-        displayAllHeaders: true,   // 默认值：false
+        // displayAllHeaders: true,   // 默认值：false
         lastUpdated: 'lastUpdate', // string | boolean
         nav: [
             //格式一：直接跳转，'/'为不添加路由，跳转至首页
@@ -156,6 +156,7 @@ module.exports = {
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
                        'browser.md',
+                       'PerformanceOptimization.md'
                     ]
                 },
                 {
@@ -232,3 +233,4 @@ module.exports = {
         }
     }
 }
+
