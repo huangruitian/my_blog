@@ -1,6 +1,6 @@
 module.exports = {
-    title: '懵新加加首页', // 显示在左上角的网页名称以及首页在浏览器标签显示的title名称
-    description: '懵新加加的前端记录', // meta 中的描述文字，用于SEO
+    title: '前端加加首页', // 显示在左上角的网页名称以及首页在浏览器标签显示的title名称
+    description: '前端加加的前端记录', // meta 中的描述文字，用于SEO
     base: '/my_blog/', //设置站点根路径
     // 注入到当前页面的 HTML <head> 中的标签
     // head: [
@@ -15,7 +15,7 @@ module.exports = {
     serviceWorker: true,
     themeConfig: {
         // logo: '/egg.png',
-        // displayAllHeaders: true,   // 默认值：false
+        displayAllHeaders: true,   // 默认值：false
         lastUpdated: 'lastUpdate', // string | boolean
         nav: [
             //格式一：直接跳转，'/'为不添加路由，跳转至首页
@@ -23,83 +23,6 @@ module.exports = {
                 text: '首页',
                 link: '/'
             },
-            //格式二：添加下拉菜单，link指向的文件路径
-            // {
-            //     text: '计算机基础',
-            //     ariaLabel: '计算机基础',
-            //     items: [
-            //         //点击标签会跳转至link的markdown文件生成的页面
-            //         {
-            //             text: '网络',
-            //             link: '/pages/pcBase/network.md'
-            //         },
-            //         {
-            //             text: '数据结构',
-            //             link: '/pages/pcBase/dataStructure.md'
-            //         },
-            //         {
-            //             text: '算法',
-            //             link: '/pages/pcBase/algorithm.md'
-            //         },
-            //         {
-            //             text: '操作系统',
-            //             link: '/pages/pcBase/system.md'
-            //         },
-            //     ]
-            // },
-            // {
-            //     text: '前端',
-            //     ariaLabel: '前端',
-            //     items: [
-            //         //点击标签会跳转至link的markdown文件生成的页面
-            //         {
-            //             text: 'html',
-            //             link: '/pages/frontEnd/html.md'
-            //         },
-            //         {
-            //             text: 'css',
-            //             link: '/pages/frontEnd/css.md'
-            //         },
-            //         {
-            //             text: 'js',
-            //             link: '/pages/frontEnd/js.md'
-            //         },
-            //         {
-            //             text: 'es6',
-            //             link: '/pages/frontEnd/es6.md'
-            //         },
-            //         {
-            //             text: 'react',
-            //             link: '/pages/frontEnd/react.md'
-            //         },
-            //         {
-            //             text: 'redux',
-            //             link: '/pages/frontEnd/redux.md'
-            //         },
-            //         {
-            //             text: 'typescript',
-            //             link: '/pages/frontEnd/typescript.md'
-            //         },
-            //         {
-            //             text: 'webpack',
-            //             link: '/pages/frontEnd/webpack.md'
-            //         },
-            //         {
-            //             text: '前端工程化',
-            //             link: '/pages/frontEnd/engineering.md'
-            //         },
-            //         {
-            //             text: '浏览器',
-            //             link: '/pages/frontEnd/browser.md'
-            //         },
-            //         {                
-            //             text: 'node',
-            //             link: '/pages/frontEnd/node.md'
-            //         },
-            //     ]
-            // },
-            // { text: '功能演示', link: '/pages/folder1/test3.md' },
-            //格式三：跳转至外部网页，需http/https前缀
             {
                 text: 'Github',
                 link: 'https://github.com/huangruitian'
@@ -118,7 +41,7 @@ module.exports = {
                 {
                     title: 'css', // 必要的，一级菜单
                     // collapsable: false,      // 可选的, 默认值true是折叠,
-                    sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
+                    // sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
                       'css.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
                     ]
@@ -192,6 +115,7 @@ module.exports = {
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
                        'webpack.md',
+                       'webpack2.md'
                     ]
                 },
                 {
@@ -233,4 +157,3 @@ module.exports = {
         }
     }
 }
-

@@ -84,7 +84,7 @@
         display: flex;
     }
     .middle{
-        flex: 1;
+        flex: 1; 
         background:yellow;
     }
     .left{
@@ -238,3 +238,63 @@ body{
 4. 应用场景
 - 防止浮动元素外边距塌陷，俗称margin塌陷；
 - 防止浮动元素内部高度塌陷
+
+## flex 布局
+什么是flex布局？
+
+给div这类块状元素元素设置 display:flex 或者给 span 这类内联元素设置 display:inline-flex，flex布局即创建！其中，直接设置 display:flex 或者 display:inline-flex 的元素称为flex容器，里面的子元素称为flex子项。
+
+作用在flex容器上的属性：
+1. flex-direction：row | row-reverse | column | column-reverse; 
+- 默认值，显示为行。方向为当前文档水平流方向，默认情况下是从左往右。
+
+2. flex-wrap：nowrap | wrap | wrap-reverse;
+- 控制子项整体单行显示还是换行显示；
+- 子项有宽度才行，如果子项自身的宽度大于容器，强行不换行自身宽度会失效；
+
+3. flex-flow： <‘flex-direction’> || <‘flex-wrap’>
+- flex-flow属性是flex-direction和flex-wrap的缩写，表示flex布局的flow流动特性。
+
+4. justify-content：flex-start | flex-end | center | space-between | space-around | space-evenly;
+- justify-content属性决定了水平方向子项的对齐和分布方式；
+
+5. align-items：stretch | flex-start | flex-end | center | baseline;
+- 指的就是flex子项们相对于flex容器在垂直方向上的对齐方式，
+- 如果不设置这个，默认会把子项高度拉伸；
+
+6. align-content：stretch | flex-start | flex-end | center | space-between | space-around | space-evenly;
+- align-content则是指明垂直方向每一行flex元素的对齐和分布方式。和justify-content相似但对立的属性；
+
+作用在 flex 子项上的属性：
+1. order：0
+- 可以通过设置order改变某一个flex子项的排序位置。
+- 所有flex子项的默认order属性值是0，因此，如果我们想要某一个flex子项在最前面显示，可以设置比0小的整数，如-1就可以了。
+- 值越大，越往后面；
+
+2. flex-grow：0
+- flex-grow属性中的grow是扩展的意思，扩展的就是flex子项所占据的宽度，扩展所侵占的空间就是除去元素外的剩余的空白间隙。
+- 如果只有一个子项设置了，1代表霸占所有剩余空间，小于1就按比例分配；
+- 多个子项设置了，总值小于1，就按比例分配，大于1，则所有的空间都被等比例分配完；
+
+3. flex-shrink：1
+- flex-shrink主要处理当flex容器空间不足时候，单个元素的收缩比例。
+- 不支持负值，默认是1；
+- 和flex-grow扩展是完全相反的CP ???
+
+4. flex-basis：<'length'> | auto; /* 默认值是 auto */
+- flex-basis定义了在分配剩余空间之前元素的默认大小。
+- 如果同时设置width和flex-basis，就渲染表现来看，会忽略width。
+
+5. flex: none | auto | [ <'flex-grow'> <'flex-shrink'> || <'flex-basis'> ]
+- flex属性是flex-grow（扩展），flex-shrink（收缩）和flex-basis（预留）的缩写。
+- 其中第2和第3个参数（flex-shrink和flex-basis）是可选的。默认值为0 1 auto。
+
+6. align-self: auto | flex-start | flex-end | center | baseline | stretch;
+- 写在flex容器上的这个align-items属性，后面是items，有个s，表示子项们，是全体；这里是self，单独一个个体。
+
+无论作用在flex容器上，还是作用在flex子项，都是控制的flex子项的呈现，只是前者控制的是整体，后者控制的是个体。
+
+在Flex布局中，flex子元素的设置float，clear以及vertical-align属性都是没有用的。
+
+
+

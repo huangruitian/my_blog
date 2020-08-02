@@ -49,7 +49,7 @@
 <input type=text autofacus="true" >
 ```
 ### 存储方面
-- 新增WebStorage, 包括localStorage和sessionStorage
+- 新增WebStorage, 包括 localStorage 和 sessionStorage
 - 引入了IndexedDB和Web SQL，允许在浏览器端创建数据库表并存储数据, 两者的区别在于IndexedDB更像是一个NoSQL数据库，而WebSQL更像是关系型数据库。W3C已经不再支持WebSQL。
 - 引入了应用程序缓存器(application cache)，可对web进行缓存，在没有网络的情况下使用，通过创建cache manifest文件,创建应用缓存，为PWA(Progressive Web App)提供了底层的技术支持。
 

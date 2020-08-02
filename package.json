@@ -8,7 +8,13 @@
     "build": "vuepress build docs",
     "deploy": "bash deploy.sh"
   },
-  "keywords": ["前端"],
+  "keywords": [
+    "前端"
+  ],
   "author": "huangruitian",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-plugin-react": "^7.20.3"
+  }
 }
