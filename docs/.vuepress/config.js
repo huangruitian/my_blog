@@ -15,7 +15,7 @@ module.exports = {
     serviceWorker: true,
     themeConfig: {
         // logo: '/egg.png',
-        displayAllHeaders: true,   // 默认值：false
+        displayAllHeaders: true, // 默认值：false
         lastUpdated: 'lastUpdate', // string | boolean
         nav: [
             //格式一：直接跳转，'/'为不添加路由，跳转至首页
@@ -35,7 +35,7 @@ module.exports = {
                     // collapsable: false,      // 可选的, 默认值true是折叠,
                     // sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
-                      'html.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
+                        'html.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
                     ]
                 },
                 {
@@ -43,114 +43,115 @@ module.exports = {
                     // collapsable: false,      // 可选的, 默认值true是折叠,
                     // sidebarDepth: 1, // 可选的, 设置侧边导航自动提取markdown文件标题的层级，默认1为h2层级
                     children: [
-                      'css.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
+                        'css.md', //菜单名称为'子菜单1'，跳转至/pages/folder1/test1.md
                     ]
                 },
                 {
                     title: 'js',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                      'js.md',
+                        'js.md',
+                        'passJS.md'
                     ]
                 },
                 {
                     title: 'es6',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                      'es6.md',
+                        'es6.md',
                     ]
                 },
                 {
                     title: 'react',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                      'react.md',
+                        'react.md',
                     ]
                 },
                 {
                     title: 'redux',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                      'redux.md',
+                        'redux.md',
                     ]
                 },
                 {
                     title: '浏览器',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'browser.md',
-                       'PerformanceOptimization.md'
+                        'browser.md',
+                        'PerformanceOptimization.md'
                     ]
                 },
                 {
                     title: 'http',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'http.md',
+                        'http.md',
                     ]
                 },
                 {
                     title: 'https',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'https.md',
+                        'https.md',
                     ]
                 },
                 {
                     title: 'websocket',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'websocket.md',
+                        'websocket.md',
                     ]
                 },
                 {
                     title: 'TypeScript',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'typescript.md',
+                        'typescript.md',
                     ]
                 },
                 {
                     title: 'webpack',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'webpack.md',
-                       'webpack2.md'
+                        'webpack.md',
+                        'webpack2.md'
                     ]
                 },
                 {
                     title: 'node',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'node.md',
+                        'node.md',
                     ]
                 },
                 {
                     title: '数据结构',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'dataStructure.md',
+                        'dataStructure.md',
                     ]
                 },
                 {
                     title: '算法',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'algorithm.md',
+                        'algorithm.md',
                     ]
                 },
                 {
                     title: '操作系统',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'system.md',
+                        'system.md',
                     ]
                 },
                 {
                     title: '网络',
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
-                       'network.md',
+                        'network.md',
                     ]
                 },
             ],

@@ -784,6 +784,7 @@ console.log(person.__proto__ === Person.prototype); // true
 ![alt](./images/prototype2.png)
 
 既然实例对象和构造函数都可以指向原型，那么原型是否有属性指向构造函数或者实例呢？
+
 3. constructor
 指向实例倒是没有，因为一个构造函数可以生成多个实例，但是原型指向构造函数倒是有的，这就要讲到第三个属性：constructor，每个原型都有一个 constructor 属性指向关联的构造函数。
 
@@ -1281,6 +1282,325 @@ function createObj(o) {
 ### 继承存在的问题
 - 因为继承，所有在某个对象上，被集成了很多无用的属性；
 - 组合模式就很好的避免掉了这样的问题；golang完全采用的是面向组合的设计方式。
+
+## 模块化
+前端为什么需要模块化？
+
+### 没有模块化产生的一些问题
+最开始js只是作为一个脚本语言来使用，做一些简单的表单校验，动画实现等等。
+代码都是这样的,直接把代码写进``<script>``标签里，代码量非常少。
+```js
+<script>
+ if(true) {
+   ...
+ } else {
+   ...
+ }
+ for(var i=0; i< 100; i++){
+   ...
+ }
+ document.getElementById('button').onClick = function () {
+   ...
+ }
+</script>
+```
+
+后来随着ajax异步请求的出现，前端能做的事情越来越多，代码量飞速增长；
+也暴露出了一些问题：
+
+1. 全局作用域
+```js
+//试想彭彭定义了一个变量 
+name = 'pengpeng';
+
+//后来，丁满后面又定义了
+name =  'dingman';
+
+//再后来， 彭彭开始使用他定义的变量
+
+if(name === 'pengpeng'){
+  ...
+}
+```
+2. 依赖关系管理的灾难
+```js
+<script type="text/javascript" src="a.js"></script>
+<script type="text/javascript" src="b.js"></script>
+<script type="text/javascript" src="c.js"></script>
+```
+如果c依赖了b，b依赖了c，则script引入的顺序必须被依赖的放在前面，试想要是有几十个文件，我们都要弄清楚文件依赖关系然后手动，按顺序引入，无疑这是非常痛苦的事情。
+
+### 早期的一些解决方案
+1. 闭包
+```js
+moduleA = (function() {
+   var a,b;
+   return {
+      add: function (c){
+         return a + b + c;
+      };
+   }
+}())
+```
+这样内部的变量就能很好的隐藏在function里面，达到了封装的目的；
+但是最外层模块名还是暴露在全局，要是模快越来越多，依然会存在模块名冲突的问题。
+
+2. 命名空间(Yahoo的YUI早期的做法)
+```js
+app.tools.moduleA.add = function(c){
+   return app.tools.moduleA.a + c;
+}
+```
+毫无疑问以上两种方法都不够优雅；
+
+那么，模块化到底需要解决什么问题提呢？我们先设想一下可能有以下几点：
+- 安全的包装一个模块的代码，避免全局污染
+- 唯一标识一个模块
+- 优雅的将模块的API暴露出来
+- 方便使用的模块
+
+### 服务端的模块化
+Nodejs出现开创了一个新的纪元，使得我们可以使用javascript写服务器代码，对于服务端而言必然是需要模块化的。
+
+1. Nodejs和CommonJS的关系
+- Nodejs 的模块化能成熟的姿态出现离不开CommonJS的规范的影响
+- 在服务器端CommonJS能以一种寻常的姿态写进各个公司的项目代码中，离不开Node的优异表现
+- Node并非完全按照规范实现，针对模块规范进行了一定的取舍，同时也增加了少许自身特性
+
+2. CommonJS规范简介
+CommonJS对模块的定义非常简单，主要分为模块引用，模块定义和模块标识3部分
+- 模块引用
+```js
+var add = require('./add.js');
+var config = require('config.js');
+var http = require('http');
+```
+
+- 模块定义
+```js
+module.exports.add = function () {
+  ...
+}
+module.exports = function () {
+  return ...
+}
+```
+可以在一个文件中引入模块并导出另一个模块:
+```js
+var add = require('./add.js');
+module.exports.increment = function () {
+  return add(val, 1);
+}
+```
+其实，一个文件代表一个模块，一个模块除了自己的函数作用域之外，最外层还有一个模块作用域，module就是代表这个模块，exports是module的属性。require也在这个模块的上下文中，用来引入外部模块。
+
+- 模块标识
+
+模块标识就是require( )函数的参数，规范是这样的：
+- 必须是字符串
+- 可以是以./ ../开头的相对路径
+- 可以是绝对路径
+- 可以省略后缀名
+
+CommonJS的模块规范定义比较简单，意义在于将类聚的方法和变量等限定在私有的作用域中，同时支持引入和导出将上下游模块无缝衔接，每个模块具有独立的空间，它们互不干扰。
+
+### nodejs 的模块化标准
+Node 模块在实现中并非完全按照 CommonJS 来，进行了取舍，增加了一些自身的的特性。
+Node 中一个文件是一个模块 module
+一个模块就是一个 Module 的实例
+Node中Module构造函数：
+```js
+function Module（id, parent）{
+  this.id = id;
+  this.exports = {};
+  this.parent = parent;
+  if(parent && parent.children) {
+    parent.children.push(this);
+  }
+  this.filename = null;
+  this.loaded = false;
+  this.children = [];
+}
+
+//实例化一个模块
+ var module = new Module(filename, parent);
+```
+其中id 是模块id，exports是这个模块要暴露出来的api，parent是父级模块，loaded表示这个模块是否加载完成，因为CommonJS是运行时加载，loaded表示文件是否已经执行完毕返回一个对象。
+
+### Node模块分类
+如图所示Node模块一般分为两种核心模块和文件模块。
+![alt](./images/node_modules.png)
+
+核心模块，就是Node内置的模块比如http， path等。在Node的源码的编译时，核心模块就一起被编译进了二进制执行文件，部分核心模块(内建模块)被直接加载进内存中。
+
+在Node模块的引入过程中，一般要经过一下三个步骤
+- 路径分析
+- 文件定位
+- 编译执行
+核心模块会省略文件定位和编译执行这两步，并且在路径分析中会优先判断，加载速度比一般模块更快。
+
+文件模块——就是外部引入的模块如node_modules里通过npm安装的模块，或者我们项目工程里自己写的一个js文件或者json文件。
+
+文件模块引入过程以上三个步骤都要经历。
+
+### ES6模块
+CommonJS和AMD都是运行时加载。ES6在语言规格层面上实现了模块功能，是编译时加载，完全可以取代现有的CommonJS和AMD规范，可以成为浏览器和服务器通用的模块解决方案。这里关于ES6模块我们项目里使用非常多，所以详细讲解。
+1. 导出一个变量
+```js
+export var name = 'pengpeng';
+```
+
+2. 导出一个函数
+```js
+export function foo(x, y){}
+```
+
+3. 常用导出方式（推荐）
+```js
+// person.js
+const name = 'dingman';
+const age = '18';
+const addr = '卡尔斯特森林';
+
+export { firstName, lastName, year };
+```
+4. As用法
+```js
+const s = 1;
+export {
+  s as t,
+  s as m, 
+}
+```
+导入：
+1. 一般用法
+```js
+import { name, age } from './person.js';
+```
+
+2. As用法
+```js
+import { name as personName } from './person.js';
+```
+
+3. import命令具有提升效果，会提升到整个模块的头部，首先执行，如下也不会报错
+```js
+getName();
+import { getName } from 'person_module';
+```
+
+4. 整体模块加载 *
+```js
+//person.js
+export name = 'xixi';
+export age = 23;
+
+//逐一加载
+import { age, name } from './person.js';
+
+//整体加载
+import * as person from './person.js';
+console.log(person.name);
+console.log(person.age);
+```
+
+其实export default，在项目里用的非常多，一般一个Vue组件或者React组件我们都是使用export default命令，需要注意的是使用export default命令时，import是不需要加{}的。而不使用export default时，import是必须加{}，示例如下：
+```js
+//person.js
+export function getName() {
+ ...
+}
+//my_module
+import { getName } from './person.js';
+
+-----------------对比---------------------
+
+//person.js
+export default function getName(){
+ ...
+}
+//my_module
+import getName from './person.js';
+```
+
+export default其实是导出一个叫做default的变量，所以其后面不能跟变量声明语句。
+```js
+//错误
+export default var a = 1;
+```
+
+值得注意的是我们可以同时使用export 和export default
+```js
+//person.js
+export name = 'dingman';
+export default function getName(){
+  ...
+}
+
+//my_module
+import getName, { name } from './person.js';
+```
+
+前面一直提到，CommonJS是运行时加载，ES6时编译时加载，那么两个有什么本质的区别呢？
+
+### ES6模块与CommonJS模块加载区别
+ES6模块的设计思想，是尽量的静态化，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。所以说ES6是编译时加载，不同于CommonJS的运行时加载(实际加载的是一整个对象)，ES6模块不是对象，而是通过export命令显式指定输出的代码，输入时也采用静态命令的形式：
+```js
+//ES6模块
+import { basename, dirname, parse } from 'path';
+
+//CommonJS模块
+let { basename, dirname, parse } = require('path');
+```
+
+以上这种写法与CommonJS的模块加载有什么不同？
+- 当require path模块时，其实 CommonJS会将path模块运行一遍，并返回一个对象，并将这个对象缓存起来，这个对象包含path这个模块的所有API。以后无论多少次加载这个模块都是取这个缓存的值，也就是第一次运行的结果，除非手动清除。
+
+- ES6会从path模块只加载3个方法，其他不会加载，这就是编译时加载。ES6可以在编译时就完成模块加载，当ES6遇到import时，不会像CommonJS一样去执行模块，而是生成一个动态的只读引用，当真正需要的时候再到模块里去取值，所以ES6模块是动态引用，并且不会缓存值。
+
+因为CommonJS模块输出的是值的拷贝，所以当模块内值变化时，不会影响到输出的值。基于Node做以下尝试：
+```js
+//person.js
+var age = 18;
+module.exports ={
+  age: age,
+  addAge: function () {
+    age++;
+  }
+} 
+
+//my_module
+var person = require('./person.js');
+console.log(person.age);
+person.addAge();
+console.log(person.age);
+
+//输出结果
+18
+18
+```
+可以看到内部age的变化并不会影响person.age的值，这是因为person.age的值始终是第一次运行时的结果的拷贝。
+
+再看ES6：
+```js
+//person.js
+export let age = 18;
+export function addAge(){
+  age++;
+}
+
+//my_module
+import { age, addAge } from './person.js';
+console.log(age);
+addAge();
+console.log(age);
+
+//输出结果
+18
+19
+```
+### 为什么需要webpack？
+
 
 ## JS 专题系列
 1. 防抖

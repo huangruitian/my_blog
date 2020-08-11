@@ -279,7 +279,7 @@ body{
 3. flex-shrink：1
 - flex-shrink主要处理当flex容器空间不足时候，单个元素的收缩比例。
 - 不支持负值，默认是1；
-- 和flex-grow扩展是完全相反的CP ???
+- 和flex-grow扩展是完全相似的CP
 
 4. flex-basis：<'length'> | auto; /* 默认值是 auto */
 - flex-basis定义了在分配剩余空间之前元素的默认大小。
@@ -295,6 +295,16 @@ body{
 无论作用在flex容器上，还是作用在flex子项，都是控制的flex子项的呈现，只是前者控制的是整体，后者控制的是个体。
 
 在Flex布局中，flex子元素的设置float，clear以及vertical-align属性都是没有用的。
+
+## CSS 复习
+1. 盒模型
+- width + padding + border + margin = w3c内容盒
+- 宽(width + padding + border) + margin = 怪异盒模型
+- box-sizing 可以改变
+
+2. 选择器权重
+- !important > 行间 > id > class | 属性 | 伪类 > 标签 | 伪元素 > 通配符*
+- !important 的权重js也无法修改，256进制；
 
 
 

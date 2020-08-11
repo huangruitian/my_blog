@@ -541,3 +541,144 @@ document.getElementById('stop').onclick = function () {
 ## react框架
 
 ## 构建工具篇
+
+## 项目总结
+### 开发体验
+1. 开发体验和效率
+- 接手同事代码，发现代码风格每个人都不一致，甚至使用存在缺陷的js语法；（eslint 规则松散，增加code reviwer）
+```js
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test:nowatch && npm run lint"
+    }
+  },
+  "scripts": {
+    "lint": "eslint --ext js,ts,tsx src --max-warnings 5",
+  },
+```
+
+- 代码 0 注释，有些文件 1600 行一个组件，极难维护和阅读；（讨论分文件，上TS）
+
+- 代码结构不友好，全部ajax请求走redux，redux不分模块存放，分文件；（应该分模块）
+
+- development 打包时间极其缓慢；（优化webpack配置，增加构建缓存、多线程打包）
+```js
+1. 多线程打包
+2. 开启缓存，babel缓存，cache-loader，压缩缓存TerserPlugin；
+3. 较少解析文件的范围```include exclude```
+4. 减少不必要解析的第三方模块用 DllPlugin，尽量写上扩展名resolve.extensions，较少搜索；
+5. resolve.alias 嵌套过深的使用别名，或者commo组件；
+```
+- commit 信息混乱，无法快速定位模块；（husky + commitlint）
+
+- 开发功能代码分支容易偏离主干，难以快速迭代更新；（没有CI/CD）
+
+![alt](./images/web-end.png)
+
+- css 冲突，没有打开css module 模块化；
+
+2. 难点
+- 封装的组件不灵活，可扩展性不强；（banner 为例，重新改变封装，上hooks）
+- 有时候处理的数据相对复杂，有扎实的算法功底会很好处理；
+- SKU 算法问题，没有办法解决；（回溯算法）
+```js
+// 源数据， 业务场景，用户动态选择属性，生产一个表格
+let arr = [{
+    id: 'color',
+    value: ['1', '2']
+  },
+  {
+    id: 'storage',
+    value: ['A', 'B']
+  },
+  {
+    id: 'small',
+    value: ['a', 'b']
+  }
+]
+// 排列组合成这样
+let tableData = [{
+    color: "1",
+    storage: "A",
+    small: "a"
+  },
+  {
+    color: "2",
+    storage: "A",
+    small: "a"
+  },
+]
+
+// 思路
+// id:value 抽出来做一个整体。item = 3
+// 很明显是回溯算法，满足三个（一个坑挑一个），出现过 map 记录
+
+// arr = [
+//     { color:['1','2'] },
+//     { storage:['A','B'] },
+//     { small:['a','b'] }
+// ]
+
+const getPhoneList = (arr) => {
+  const res = []
+  arr = arr.map(item => ({
+      [item.id]: item.value
+    }))
+    .filter(item => {
+      const key = Object.keys(item)[0]
+      if (item[key].length) {
+        return true
+      }
+      return false
+    })
+  const backtrack = (arr, tempObj, set, idx) => {
+    let str = Object.values(tempObj).join('')
+    // 加入条件   
+    if (str.length === arr.length && !set.has(str)) {
+      set.add(str)
+      res.push(tempObj)
+    } else {
+      // 剪枝
+      if (idx >= arr.length) {
+        return
+      }
+      for (let i = idx; i < arr.length; i++) {
+        let itemObj = arr[i]
+        let key = Object.keys(itemObj)[0]
+        let valuesArr = itemObj[key]
+        for (let j = 0; j < valuesArr.length; j++) {
+          let val = valuesArr[j]
+          tempObj[key] = val
+          // 每组选一个
+          backtrack(arr, {
+            ...tempObj
+          }, set, idx + 1)
+          // 选完回溯
+          delete tempObj[key]
+        }
+      }
+    }
+  }
+  backtrack(arr, {}, new Set(), 0)
+  return res
+}
+
+console.log(getPhoneList(arr))
+```
+3. 性能缺陷（优化）
+- redux 模版代码极其严重，急速的增加了代码量（无用代码也很多，不报错），代码体积；（待解决）
+- 大量使用 !important 强制css优先级最高；
+- 代码书写性能存在一定问题，比如频繁求两个数组的交集直接暴力求解；（基本功不扎实）
+- 去掉外链css，react.lazy 实施懒加载；
+- 使用动态 polyfill 减少包体积；
+- dns-prefetch 提前解析域名；
+- 上HTTP2协议，加速网络加载；
+- 注意无关脚本defer；
+
+4. 整体的网络架构？http 服务器？应用服务器？web服务器？
+- http这些理论性的东西需要关注，但是更重要的需要关注贴合实际业务的东西；
+- html文件放哪？
+- 应用架构看明白；
+- SSO 问题；
+- webpack 解决了什么问题？核心价值；
+- 模块化，什么的模块化？
