@@ -558,16 +558,18 @@ document.getElementById('stop').onclick = function () {
 ```
 
 - 代码 0 注释，有些文件 1600 行一个组件，极难维护和阅读；（讨论分文件，上TS）
-
+- 组件滥用过期的生命钩子，key的不正确使用，导致react组件的性能很差；（研究了源码）
+- 写的代码也不关注性能问题，数据量大了会出现性能问题；（扎实基本功，学习了算法）
 - 代码结构不友好，全部ajax请求走redux，redux不分模块存放，分文件；（应该分模块）
 
 - development 打包时间极其缓慢；（优化webpack配置，增加构建缓存、多线程打包）
 ```js
-1. 多线程打包
+1. 多线程打包happypack
 2. 开启缓存，babel缓存，cache-loader，压缩缓存TerserPlugin；
 3. 较少解析文件的范围```include exclude```
 4. 减少不必要解析的第三方模块用 DllPlugin，尽量写上扩展名resolve.extensions，较少搜索；
 5. resolve.alias 嵌套过深的使用别名，或者commo组件；
+6. 减少首屏包体积，用react.lazy
 ```
 - commit 信息混乱，无法快速定位模块；（husky + commitlint）
 
@@ -579,8 +581,9 @@ document.getElementById('stop').onclick = function () {
 
 2. 难点
 - 封装的组件不灵活，可扩展性不强；（banner 为例，重新改变封装，上hooks）
+- 组件滥用过期生命钩子，业务代码书写不关注性能；
 - 有时候处理的数据相对复杂，有扎实的算法功底会很好处理；
-- SKU 算法问题，没有办法解决；（回溯算法）
+- 多处使用 SKU 算法问题，没有抽离封装；（抽离封装 回溯算法）
 ```js
 // 源数据， 业务场景，用户动态选择属性，生产一个表格
 let arr = [{

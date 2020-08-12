@@ -66,6 +66,7 @@ module.exports = {
                     // collapsable: false, // 可选的, 默认值是 true,
                     children: [
                         'react.md',
+                        'reactOptimization.md'
                     ]
                 },
                 {
