@@ -583,57 +583,69 @@ document.getElementById('stop').onclick = function () {
 - 封装的组件不灵活，可扩展性不强；（banner 为例，重新改变封装，上hooks）
 - 组件滥用过期生命钩子，业务代码书写不关注性能；
 - 有时候处理的数据相对复杂，有扎实的算法功底会很好处理；
+- 优化数据量大的业务场景；antd 开启了react-window 虚拟长列表；
+```js
+场景：弹层从后端持续请求数据返回前端，前端需要修改商品属性；商品可以新增/删除、选择/不选择；
+在渲染后端返回的数据存在两个问题：
+1. 以id为key。其实是不稳定的；因为翻页react需要消耗的性能更大；
+2. 在对table页面操作的时候，用户会频繁的操作选和不选：
+// 假设现在有50条数据；只操作了一条；
+// 存在的商品就选上，用了O（m * n），而且是频繁的（50 * 50 = 2500）；
+let result = result.filter((item) => selectArr.includes(item.id));
+
+// 但是用set O（m + n）100 : 2500 = 1:25 了；
+let hash = new Set(selectArr)
+let result = result.map((item) => hash.has(item.id));
+```
+
 - 多处使用 SKU 算法问题，没有抽离封装；（抽离封装 回溯算法）
 ```js
 // 源数据， 业务场景，用户动态选择属性，生产一个表格
-let arr = [{
-    id: 'color',
-    value: ['1', '2']
-  },
-  {
-    id: 'storage',
-    value: ['A', 'B']
-  },
-  {
-    id: 'small',
-    value: ['a', 'b']
-  }
-]
+// let arr = [{
+//     id: 'color',
+//     value: ['1', '2']
+//   },
+//   {
+//     id: 'storage',
+//     value: ['A', 'B']
+//   },
+//   {
+//     id: 'small',
+//     value: ['a', 'b']
+//   }
+// ]
 // 排列组合成这样
-let tableData = [{
-    color: "1",
-    storage: "A",
-    small: "a"
-  },
-  {
-    color: "2",
-    storage: "A",
-    small: "a"
-  },
-]
+// let tableData = [{
+//     color: "1",
+//     storage: "A",
+//     small: "a"
+//   },
+//   {
+//     color: "2",
+//     storage: "A",
+//     small: "a"
+//   },
+// ]
 
 // 思路
 // id:value 抽出来做一个整体。item = 3
 // 很明显是回溯算法，满足三个（一个坑挑一个），出现过 map 记录
 
+// 先把数据处理成这样：
 // arr = [
 //     { color:['1','2'] },
 //     { storage:['A','B'] },
 //     { small:['a','b'] }
 // ]
 
-const getPhoneList = (arr) => {
+const getPhoneList = (
+   arr = [
+     { color:['1','2'] },
+     { storage:['A','B'] },
+     { small:['a','b'] }
+   ] 
+  ) => {
   const res = []
-  arr = arr.map(item => ({
-      [item.id]: item.value
-    }))
-    .filter(item => {
-      const key = Object.keys(item)[0]
-      if (item[key].length) {
-        return true
-      }
-      return false
-    })
   const backtrack = (arr, tempObj, set, idx) => {
     let str = Object.values(tempObj).join('')
     // 加入条件   
@@ -645,6 +657,7 @@ const getPhoneList = (arr) => {
       if (idx >= arr.length) {
         return
       }
+      // 选到了第几组属性
       for (let i = idx; i < arr.length; i++) {
         let itemObj = arr[i]
         let key = Object.keys(itemObj)[0]
@@ -652,7 +665,7 @@ const getPhoneList = (arr) => {
         for (let j = 0; j < valuesArr.length; j++) {
           let val = valuesArr[j]
           tempObj[key] = val
-          // 每组选一个
+          // 每组选属性一个
           backtrack(arr, {
             ...tempObj
           }, set, idx + 1)
@@ -662,11 +675,12 @@ const getPhoneList = (arr) => {
       }
     }
   }
+  console.log(arr)
   backtrack(arr, {}, new Set(), 0)
   return res
 }
 
-console.log(getPhoneList(arr))
+console.log(getPhoneList())
 ```
 3. 性能缺陷（优化）
 - redux 模版代码极其严重，急速的增加了代码量（无用代码也很多，不报错），代码体积；（待解决）
