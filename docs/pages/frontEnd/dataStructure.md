@@ -530,6 +530,60 @@ const heapSort = (nums) => {
 }
 ```
 
+
+leetCode:215 数组中的第K个最大元素：
+```js
+var findKthLargest = function(nums, k) {
+  let n = nums.length
+  // 原地堆化K个数
+  buildMinHeap(nums, k)
+  for(let i = k; i < n; i++){
+    //比堆顶小的才要
+    if(nums[i] > nums[0]){
+       //交换堆顶
+       swap(nums, i, 0);
+       //继续堆化    
+       heapify(k, 0, nums)
+    }  
+  }
+  return nums[0]
+};
+
+function buildMinHeap(nums, k){
+   //(k - 1) >> 1 是取k个节点的第一个父节点
+   for(let i = (k - 1) >> 1; i >= 0; i--){
+      heapify(k, i, nums)
+   }
+}
+
+function heapify(n, i, nums){
+   //递归出口
+   if(i >= n){
+       return
+   }
+   let min = i
+   let left = i * 2 + 1
+   let right = i * 2 + 2
+   if(left < n && nums[min] > nums[left]){
+       min = left
+   }
+   if(right < n && nums[min] > nums[right]){
+       min = right
+   }
+   //在当前的子树不是最小的才进行堆化heapify操作
+   if(min != i){
+     swap(nums, min, i);
+     heapify(n, min, nums)
+   }
+}
+
+function swap(nums, i, j){
+   let temp = nums[i]
+   nums[i] = nums[j]
+   nums[j] = temp
+}
+```
+
 ## 图
 leetcode997：找到小镇的法官
 

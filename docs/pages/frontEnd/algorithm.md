@@ -178,6 +178,7 @@ const heapSort = (nums) => {
    return nums
 }
 ```
+
 ## 二分查找
 - 口诀：找左缩右，找右缩左, 边界左加右不加
 - 解释：找左边界，遇到相等先收缩右边界(因为我们要左边界嘛), 右边界同理; 
@@ -518,6 +519,25 @@ var lengthOfLongestSubstring = function(s) {
     return res
 };
 ```
+leetCode:209 长度最小的子数组：
+```js
+var minSubArrayLen = function(s, nums) {
+  let n = nums.length
+  let left = 0, res = Infinity, sum = 0;
+  for(let right = 0; right < n; right++){
+    //记录和
+    sum += nums[right]
+    //满足条件，收缩左指针
+    while(sum >= s){
+      //收缩之前，取最小值  
+      res = Math.min(res, right - left + 1)
+      sum -= nums[left++];
+    }
+  }
+  //注意数组全部加起来或者数组为0的时候，res不变；
+  return res == Infinity ? 0 : res
+};
+```
 
 ## 前缀和
 - 前缀和适合做sumRange(i, j)范围取值类型题目；
@@ -532,4 +552,56 @@ for (int i = 0; i < n; i++)
     preSum[i + 1] = preSum[i] + nums[i];
 ```
 
+## 常见的位运算
+1. 利用或操作 | 和空格将英文字符转换为小写
+```js
+('a' | ' ') = 'a'
+('A' | ' ') = 'a'
+```
+
+2. 利用与操作 & 和下划线将英文字符转换为大写
+```js
+('b' & '_') = 'B'
+('B' & '_') = 'B'
+```
+
+3. 利用异或操作 ^ 和空格进行英文字符大小写互换
+```js
+('d' ^ ' ') = 'D'
+('D' ^ ' ') = 'd'
+```
+
+以上操作能够产生奇特效果的原因在于 ASCII 编码。字符其实就是数字，恰巧这些字符对应的数字通过位运算就能得到正确的结果，有兴趣的读者可以查 ASCII 码表自己算算;
+
+4. 判断两个数是否异号
+```js
+int x = -1, y = 2;
+bool f = ((x ^ y) < 0); // true
+
+int x = 3, y = 2;
+bool f = ((x ^ y) < 0); // false
+```
+
+5. 交换两个数字
+```js
+int a = 1, b = 2;
+a ^= b;
+b ^= a;
+a ^= b;
+// 现在 a = 2, b = 1
+```
+
+6. 加一
+```js
+int n = 1;
+n = -~n;
+// 现在 n = 2
+```
+
+7. 减一
+```js
+int n = 2;
+n = ~-n;
+// 现在 n = 1
+```
 

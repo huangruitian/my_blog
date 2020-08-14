@@ -564,10 +564,10 @@ document.getElementById('stop').onclick = function () {
 
 - development 打包时间极其缓慢；（优化webpack配置，增加构建缓存、多线程打包）
 ```js
-1. 多线程打包happypack
+1. 多线程打包happypack thread-loader；
 2. 开启缓存，babel缓存，cache-loader，压缩缓存TerserPlugin；
 3. 较少解析文件的范围```include exclude```
-4. 减少不必要解析的第三方模块用 DllPlugin，尽量写上扩展名resolve.extensions，较少搜索；
+4. 分离第三方模块用 DllPlugin，尽量写上扩展名resolve.extensions，较少搜索；
 5. resolve.alias 嵌套过深的使用别名，或者commo组件；
 6. 减少首屏包体积，用react.lazy
 ```
@@ -580,14 +580,14 @@ document.getElementById('stop').onclick = function () {
 - css 冲突，没有打开css module 模块化；
 
 2. 难点
-- 封装的组件不灵活，可扩展性不强；（banner 为例，重新改变封装，上hooks）
+- 封装的组件不灵活，可扩展性不强；（banner 为例，重新改变封装，然后关注了hooks）
 - 组件滥用过期生命钩子，业务代码书写不关注性能；
 - 有时候处理的数据相对复杂，有扎实的算法功底会很好处理；
 - 优化数据量大的业务场景；antd 开启了react-window 虚拟长列表；
 ```js
 场景：弹层从后端持续请求数据返回前端，前端需要修改商品属性；商品可以新增/删除、选择/不选择；
 在渲染后端返回的数据存在两个问题：
-1. 以id为key。其实是不稳定的；因为翻页react需要消耗的性能更大；
+1. 翻页以id为key。其实是不稳定的；因为翻页react需要消耗的性能更大；
 2. 在对table页面操作的时候，用户会频繁的操作选和不选：
 // 假设现在有50条数据；只操作了一条；
 // 存在的商品就选上，用了O（m * n），而且是频繁的（50 * 50 = 2500）；
@@ -598,7 +598,7 @@ let hash = new Set(selectArr)
 let result = result.map((item) => hash.has(item.id));
 ```
 
-- 多处使用 SKU 算法问题，没有抽离封装；（抽离封装 回溯算法）
+- 发现多处使用 SKU 算法问题，没有进行抽离封装；（抽离封装 回溯算法）
 ```js
 // 源数据， 业务场景，用户动态选择属性，生产一个表格
 // let arr = [{
@@ -682,8 +682,9 @@ const getPhoneList = (
 
 console.log(getPhoneList())
 ```
+
 3. 性能缺陷（优化）
-- redux 模版代码极其严重，急速的增加了代码量（无用代码也很多，不报错），代码体积；（待解决）
+- redux 模版代码极其严重，急速的增加了代码量（无用代码也很多，不报错），代码体积；（待解决，只是让他们少用redux;）
 - 大量使用 !important 强制css优先级最高；
 - 代码书写性能存在一定问题，比如频繁求两个数组的交集直接暴力求解；（基本功不扎实）
 - 去掉外链css，react.lazy 实施懒加载；
@@ -696,6 +697,6 @@ console.log(getPhoneList())
 - http这些理论性的东西需要关注，但是更重要的需要关注贴合实际业务的东西；
 - html文件放哪？
 - 应用架构看明白；
-- SSO 问题；
+- SSO 问题；(可以设置cookie)
 - webpack 解决了什么问题？核心价值；
 - 模块化，什么的模块化？
