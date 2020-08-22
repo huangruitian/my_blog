@@ -672,8 +672,198 @@ export function ThemeProvider(props) {
 }
 ```
 
+## 虚拟长列表
+1. 利用 IntersectionObserver 监听两个dom
+```js
+import React, { useState, useEffect, useRef } from "react";
+const THRESHOLD = 15;
 
+const SlidingWindowScrollHook = (props) =>  {
+  const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(THRESHOLD);
+  const [observer, setObserver] = useState(null);
+  const $bottomElement = useRef();
+  const $topElement = useRef();
 
+  useEffect(() => {
+    intiateScrollObserver();
+    return () => {
+      resetObservation()
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[end])
+
+  const intiateScrollObserver = () => {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+    const Observer = new IntersectionObserver(callback, options)
+    if ($topElement.current) {
+      Observer.observe($topElement.current);
+    }
+    if ($bottomElement.current) {
+      Observer.observe($bottomElement.current);
+    }
+    setObserver(Observer)    
+  }
+
+  const updateState = (newStart, newEnd) => {
+    if (start !== newStart || end !== newEnd) {
+      setStart(newStart)
+      setEnd(newEnd)
+    }
+  }
+
+  const resetObservation = () => {
+    observer && observer.unobserve($bottomElement.current);
+    observer && observer.unobserve($topElement.current);
+  }
+
+  const getReference = (index, isLastIndex) => {
+    if (index === 0)
+      return $topElement;
+    if (isLastIndex) 
+      return $bottomElement;
+    return null;
+  }
+  
+  // 交叉观察的具体回调，观察每个节点，并对实时头尾元素索引处理
+  const callback = (entries, observer) => {
+    entries.forEach((entry, index) => {
+      const listLength = props.list.length;
+      // Scroll Down
+      // We make increments and decrements in 10s
+      if (entry.isIntersecting && entry.target.id === "bottom") {
+        const maxStartIndex = listLength - 1 - THRESHOLD;     // Maximum index value `start` can take
+        const maxEndIndex = listLength - 1;                   // Maximum index value `end` can take
+        const newEnd = (end + 10) <= maxEndIndex ? end + 10 : maxEndIndex;
+        const newStart = (end - 5) <= maxStartIndex ? end - 5 : maxStartIndex;
+        updateState(newStart, newEnd);
+      }
+      // Scroll up
+      if (entry.isIntersecting && entry.target.id === "top") {
+        const newEnd = end === THRESHOLD ? THRESHOLD : (end - 10 > THRESHOLD ? end - 10 : THRESHOLD);
+        let newStart = start === 0 ? 0 : (start - 10 > 0 ? start - 10 : 0);
+        updateState(newStart, newEnd);
+      }
+    });
+  }
+
+  const {list, height} = props;
+  const updatedList = list.slice(start, end);
+  console.log(updatedList.length);
+  
+  const lastIndex = updatedList.length - 1;
+  return (
+    <ul style={{position: 'relative'}}>
+      {updatedList.map((item, index) => {
+        const top = (height * (index + start)) + 'px';
+        const refVal = getReference(index, index === lastIndex);
+        const id = index === 0 ? 'top' : (index === lastIndex ? 'bottom' : '');
+        return (<li className="li-card" key={item.key} style={{top}} ref={refVal} id={id}>{item.value}</li>);
+      })}
+    </ul>
+  );
+}
+export { SlidingWindowScrollHook };
+```
+2. 监听传统的滚动事件
+```js
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useState } from "react";
+
+function infitityScroll() {
+    // 模拟100条数据
+    var count = 0;
+    var list = Array.from({ length: 100 }, () => {
+        return count++;
+    });
+
+    var liHeight = 50,     // 单个li高度
+        liMarginTop = 10,  // li的marginTop
+        viewHeight = 600,  // 视口高度
+        viewWidth = 200,   // 视口宽度
+        // 视口内盛放的li个数
+        showLiCount = parseInt(viewHeight / (liHeight + liMarginTop)) + 1; 
+
+    const [nowList, setNowList] = useState(list.slice(0, showLiCount));
+    // 内部第二个ul距离容器的距离
+    const [ulTop, setUlTop] = useState(0); 
+
+    // 计算所有li的总的高度
+    const [ulHeight, setUlHeight] = useState(
+        list.length * liHeight + (list.length + 1) * liMarginTop
+    );
+    const ulContainer = React.createRef();
+
+    return (
+        <div
+            style={{
+                height: viewHeight + "px",
+                width: viewWidth + "px",
+                border: "1px solid",
+                position: "relative",
+                overflow: "auto",
+            }}
+            ref={ulContainer}
+            onScroll={() => {
+                // 滚动条位置，也就是说滚动了多远；
+                var nowTop = ulContainer.current.scrollTop;
+                console.log('nowTop:', nowTop);
+                const h = liHeight + liMarginTop
+                // 内部第二个ul距离容器的距离
+                // 要让数据一直在窗口上，该怎么设置呢？
+                console.log('setUlTop:', nowTop - (nowTop % h))
+                // 第一个元素的位置？
+                // 动态改变top使元素永远保持在窗口上
+                // setUlTop(nowTop) 可以，但是会闪屏幕；
+                // 除不尽的原因，又强下拉；
+                setUlTop(nowTop - (nowTop % h));
+                // 起始索引；
+                var start = parseInt(nowTop / h);
+                // 更新数据
+                setNowList(list.slice(start, start + showLiCount));
+            }}
+        >   
+            {/* 撑开的总高度 */}
+            <ul style={{ margin: 0, padding: 0, height: ulHeight + "px" }}></ul>
+            {/* 动态改变top使元素永远保持在窗口上 */}
+            <ul
+                style={{
+                    margin: 0,
+                    position: "absolute",
+                    listStyleType: "none",
+                    top: ulTop + "px",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    padding: 0
+                }}
+            >
+                {nowList.map((item, index) => {
+                    return (
+                        <li
+                            key={index}
+                            style={{
+                                backgroundColor: "yellow",
+                                marginLeft: 10,
+                                marginRight: 10,
+                                height: liHeight + "px",
+                                marginTop: liMarginTop + "px"
+                            }}
+                        >
+                            {item}
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+}
+
+export default infitityScroll;
+```
 
 
 
