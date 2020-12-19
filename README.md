@@ -3,7 +3,7 @@
 npm install -g vuepress
 npm install
 
-- 如果是 mac，注意修改文件夹权限
+- 如果是 mac，注意修改文件夹的所有权限
 
 ### Markdown 参考语法
 
