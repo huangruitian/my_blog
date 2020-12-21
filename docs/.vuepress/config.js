@@ -123,6 +123,11 @@ module.exports = {
           children: ["network.md"],
         },
         {
+          title: "设计模式",
+          // collapsable: false, // 可选的, 默认值是 true,
+          children: ["designMode.md"],
+        },
+        {
           title: "业务难点",
           // collapsable: false, // 可选的, 默认值是 true,
           children: ["business.md"],
