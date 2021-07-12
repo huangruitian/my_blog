@@ -128,6 +128,11 @@ module.exports = {
           children: ["designMode.md"],
         },
         {
+          title: "模块化",
+          // collapsable: false, // 可选的, 默认值是 true,
+          children: ["module.md"],
+        },
+        {
           title: "业务难点",
           // collapsable: false, // 可选的, 默认值是 true,
           children: ["business.md"],
